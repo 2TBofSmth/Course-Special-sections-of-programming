@@ -54,7 +54,15 @@ class DVapp(server.App):
                   'label': 'Range of years',
                   'value': '1982-2024',
                   'action_id': 'simple_html_output'
-              }]
+              },
+              {
+                  'type': 'text',
+                  'key': 'range_weeks',
+                  'label': 'Range of weeks',
+                  'value': '1-52',
+                  'action_id': 'simple_html_output'
+              }
+              ]
 
     outputs = [
         {
@@ -82,22 +90,22 @@ class DVapp(server.App):
         }]
 
     def __init__(self):
-        check_folder('../tt/data')
-        for i in range(1, 28):
-            download_data(i)
-        self.df = pd.concat([create_df(i, replacements[find_province_id(i)]) for i in get_paths('../tt/data')])
+        # check_folder('data')
+        # for i in range(1, 28):
+        #     download_data(i)
+        # self.df = pd.concat([create_df(i, replacements[find_province_id(i)]) for i in get_paths('data')])
+        self.df = pd.read_csv('../tt/data.csv')
 
     def getData(self, params):
         filtered_df = self.df[(self.df['area'] == int(params['area_index'])) &
-                              (self.df['Year'].isin(self.parseRange(params['range_years'])))]
-
+                              (self.df['Year'].isin(self.parseRange(params['range_years']))) &
+                               (self.df['Week'].isin(self.parseRange(params['range_weeks'])))]
         return filtered_df[['Year', 'Week', params['metric']]]
 
     def getPlot(self, params):
         filtered_df = self.df[(self.df['area'] == int(params['area_index'])) &
                               (self.df['Year'].isin(self.parseRange(params['range_years'])))]
-        filtered_df['Y-M'] = self.df['Year'].astype(str) + '.' + self.df['Week'].astype(str)
-        ax = sns.lineplot(x='Year', y=params['metric'], data=filtered_df)
+        ax = sns.lineplot(x='Year', y=params['metric'], data=filtered_df, linestyle='dashed', color='orange')
         return ax.get_figure()
 
     def parseRange(self, r):
